@@ -28,6 +28,24 @@ class Position {
     }
 };
 
+// class rectangle 
+
+class Rectangle {
+    constructor(position, size) {
+        this.x = position.x;
+        this.y = position.y;
+        this.w = size.width;
+        this.h = size.height;
+    }
+
+    // Savoir si un rectangle est en collision avec un autre
+    areIntersecting(other) {
+        return this.x < other.x + other.w &&
+            this.x + this.w > other.x &&
+            this.y < other.y + other.h &&
+            this.y + this.h > other.y;
+    }
+}
 
 // Notion de vitesse : nombre de pixels à bouger par secondes
 class Speed {
@@ -40,7 +58,7 @@ class Speed {
         if (max <= 0) {
             throw new Error("Vitesse maximum doit être positif");
         }
-        this.#x = 1;
+        this.#x = 0; // Bien mettre à 0 pour que le bonhomme bouge pas.
         this.#y = 0;
         this.#max = max;
     }
@@ -53,7 +71,7 @@ class Speed {
 
     // Vrai si la vitesse est nulle. 
     isStopped() {
-        return this.#x == 0 && this.#y == 0;   
+        return this.#x == 0 && this.#y == 0;
     }
 
     // Accelère si dx ou dy est positif ou freine si negatif
@@ -118,7 +136,7 @@ class Sprite {
         const DOM = document.getElementById(id);
         // Vérifie qu'il existe
         if (DOM == null) {
-            throw new Error('HTML object '+id+' not found');
+            throw new Error('HTML object ' + id + ' not found');
         }
         // Crée un objet DOM pour l'afficher
         this.#DOM = DOM.cloneNode();
@@ -177,6 +195,22 @@ class Sprite {
         // Deplace la position en fonction de la vitesse et du temps
         this.pos = this.#pos.move(this.#speed, duration);
     };
+
+// AJOUT DE LA FONCTION getRectangle POUR AVOIR LE RECTANGLE DE COLLISION DU SPRITE
+    getRectangle(pos) {
+        // Détermine quelle position est utilisé
+        let positionToUse;
+        if (pos === undefined) {
+            // Si aucun paramètre, on prend la position actuelle du Sprite
+            positionToUse = this.pos;
+        } else {
+            // Sinon, on utilise celle passée en paramètre (pour "prédire")
+            positionToUse = pos;
+        }
+
+    // Créer et retourne l'objet Rectangle PAS SUR DE CA JUSTE FAUT REFAIRE POSITIONTOUSE JCROIS
+        return new Rectangle(positionToUse, this.size);
+    }
 }
 
 class Plane extends Sprite {
@@ -184,7 +218,7 @@ class Plane extends Sprite {
     waitingTime;
     constructor(id) {
         super(id);
-        this.waitingTime=0;
+        this.waitingTime = 0;
     }
 
     // Démarre l'avion du haut de l'écran 
@@ -204,7 +238,7 @@ class Plane extends Sprite {
     update(duration) {
         super.update(duration);
         // Regarde si le sprite a disparu au bas de l'écran
-        if (this.isAtBottom() && ! this.isStopped()) {
+        if (this.isAtBottom() && !this.isStopped()) {
             // Arrete le sprite
             this.stop();
             // Place un temps d'attende avant de redémmarer
@@ -287,7 +321,7 @@ function main(tFrame) {
 // Démmare le jeu
 game.start = function () {
     // lance tous les sprites
-    for(sprite of this.sprites) {
+    for (sprite of this.sprites) {
         sprite.start();
     }
 }
@@ -295,7 +329,7 @@ game.start = function () {
 game.stop = function () {
     game.run = false;
 }
-game.init =  function () {
+game.init = function () {
     // Attend l'initialisation des autres sprites
     let sprite = new Plane("x_wing");
     game.sprites.push(sprite);
@@ -319,9 +353,4 @@ game.init =  function () {
 // L'initialisation est asynchrone donc il faut attendre
 // Il faut que toutes les images soient chargées donc on
 // s'acroche à l'évelment load de window
-window.addEventListener("load", () => {game.init();})
-
-
-
-
-
+window.addEventListener("load", () => { game.init(); })
