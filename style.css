@@ -1,21 +1,330 @@
-html,body {
-  margin: 0px;
-  padding: 0px;
+/* ── Reset ── */
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: monospace;
+  overflow: hidden;
+  background: #000;
 }
-#playground {
-    height: 100vh;
-    width: 100%;
-    background: url("data/desert_sand.jpg");
-    position: relative;
-    overflow: hidden;
-    padding: 0px;
-    margin: 0px;
-  }
 
-  #playground * {
-    position: absolute;
-  }
-  
-  div.resources {
-    display: none;
-  }
+.hidden { display: none !important; }
+
+/* ══════════════════════════════
+   ÉCRAN DE DÉMARRAGE
+══════════════════════════════ */
+#start-screen {
+position: absolute;
+    width: 100%;
+    height: 100%;
+    /* Remplace par le chemin de ton image */
+    background-image: url('data/fondmenu.png'); 
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+/* Style pour l'image que tu as ajoutée dans le menu */
+.menu-logo {
+    width: 300px;
+    margin-bottom: 20px;
+}
+
+#start-content {
+  text-align: center;
+  color: #ffe81f;
+  max-width: 520px;
+  padding: 20px;
+}
+
+#start-crawl {
+  font-size: 0.9rem;
+  letter-spacing: 0.4em;
+  color: #aaa;
+  margin-bottom: 8px;
+  animation: flicker 3s infinite;
+}
+
+#start-title {
+  font-size: 2.6rem;
+  font-weight: bold;
+  margin: 0 0 28px 0;
+  text-shadow: 0 0 30px #ffe81f88;
+  letter-spacing: 0.05em;
+}
+
+#start-rules {
+  background: rgba(255, 232, 31, 0.07);
+  border: 1px solid rgba(255, 232, 31, 0.2);
+  border-radius: 8px;
+  padding: 16px 24px;
+  margin-bottom: 28px;
+  text-align: left;
+}
+
+#start-rules p {
+  margin: 8px 0;
+  font-size: 0.95rem;
+  color: #eee;
+}
+
+#start-btn {
+  background: #ffe81f;
+  color: #000;
+  border: none;
+  padding: 14px 48px;
+  font-size: 1.3rem;
+  font-weight: bold;
+  font-family: monospace;
+  letter-spacing: 0.1em;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+  box-shadow: 0 0 20px #ffe81f66;
+}
+
+#start-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 32px #ffe81faa;
+}
+
+#start-controls {
+  margin-top: 16px;
+  color: #666;
+  font-size: 0.8rem;
+}
+
+/* Style du bouton quitter en jeu */
+#quit-btn {
+    padding: 5px 15px;
+    background-color: #ff4444;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+/* ══════════════════════════════
+   COMPTE À REBOURS
+══════════════════════════════ */
+#countdown {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12rem;
+  font-weight: bold;
+  color: #ffe81f;
+  text-shadow: 0 0 60px #ffe81f;
+  z-index: 400;
+  pointer-events: none;
+  animation: countPop 0.8s ease-out;
+}
+
+@keyframes countPop {
+  0%   { transform: scale(2);   opacity: 0; }
+  30%  { transform: scale(1);   opacity: 1; }
+  80%  { transform: scale(1);   opacity: 1; }
+  100% { transform: scale(0.5); opacity: 0; }
+}
+
+/* ══════════════════════════════
+   HUD
+══════════════════════════════ */
+#hud {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 20px;
+  box-sizing: border-box;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  color: #ffe81f;
+  font-size: 1.1rem;
+  font-weight: bold;
+  z-index: 100;
+  border-bottom: 1px solid rgba(255, 232, 31, 0.2);
+}
+
+#hud-left  { display: flex; flex-direction: column; gap: 2px; }
+#hud-right { display: flex; align-items: center; gap: 12px; }
+
+#hud-level { font-size: 0.8rem; color: #aaa; letter-spacing: 0.1em; }
+
+#hud-center {
+  font-size: 1.6rem;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 10px #ffe81f88;
+}
+
+/* Cœurs */
+.heart { font-size: 1.3rem; transition: opacity 0.3s; }
+.heart.lost { opacity: 0.15; filter: grayscale(1); }
+
+/* Bouton mute */
+#mute-btn {
+  background: transparent;
+  border: 1px solid rgba(255,232,31,0.3);
+  color: #ffe81f;
+  font-size: 1rem;
+  padding: 2px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+#mute-btn:hover { background: rgba(255,232,31,0.15); }
+
+/* ══════════════════════════════
+   BANNIÈRE DE NIVEAU
+══════════════════════════════ */
+#level-banner {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #ffe81f;
+  font-size: 2.5rem;
+  font-weight: bold;
+  text-align: center;
+  text-shadow: 0 0 40px #ffe81f;
+  z-index: 300;
+  pointer-events: none;
+  letter-spacing: 0.1em;
+}
+
+/* ══════════════════════════════
+   MESSAGE FIN DE PARTIE
+══════════════════════════════ */
+#message {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.9);
+  color: #ffe81f;
+  font-size: 1.3rem;
+  font-weight: bold;
+  text-align: center;
+  padding: 36px 48px;
+  border: 2px solid #ffe81f;
+  border-radius: 8px;
+  z-index: 300;
+  white-space: pre-line;
+  box-shadow: 0 0 40px #ffe81f44;
+}
+
+/* ══════════════════════════════
+   AIRE DE JEU
+══════════════════════════════ */
+#playground {
+  height: 100vh;
+  width: 100%;
+  background: url("data/desert_sand.jpg") center/cover no-repeat;
+  position: relative;
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
+}
+
+#playground * {
+  position: absolute;
+}
+
+div.resources {
+  display: none;
+}
+
+/* ══════════════════════════════
+   EFFETS DE COLLISION
+══════════════════════════════ */
+.collect-fx {
+  position: absolute;
+  color: #00ff88;
+  font-size: 1.4rem;
+  font-weight: bold;
+  font-family: monospace;
+  pointer-events: none;
+  text-shadow: 0 0 8px #00ff88;
+  animation: floatUp 0.9s ease-out forwards;
+  z-index: 200;
+}
+
+.hit-fx {
+  position: absolute;
+  color: #ff3333;
+  font-size: 1.4rem;
+  font-weight: bold;
+  font-family: monospace;
+  pointer-events: none;
+  text-shadow: 0 0 8px #ff3333;
+  animation: floatUp 0.9s ease-out forwards;
+  z-index: 200;
+}
+
+.bonus-fx {
+  position: absolute;
+  color: #ffe81f;
+  font-size: 1.4rem;
+  font-weight: bold;
+  font-family: monospace;
+  pointer-events: none;
+  text-shadow: 0 0 8px #ffe81f;
+  animation: floatUp 0.9s ease-out forwards;
+  z-index: 200;
+}
+
+@keyframes floatUp {
+  0%   { transform: translateY(0);    opacity: 1; }
+  100% { transform: translateY(-70px); opacity: 0; }
+}
+
+/* ══════════════════════════════
+   TREMBLEMENT R2D2
+══════════════════════════════ */
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  15%     { transform: translateX(-8px) rotate(-3deg); }
+  30%     { transform: translateX(8px)  rotate(3deg); }
+  45%     { transform: translateX(-6px) rotate(-2deg); }
+  60%     { transform: translateX(6px)  rotate(2deg); }
+  75%     { transform: translateX(-3px); }
+  90%     { transform: translateX(3px); }
+}
+
+.shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+/* ══════════════════════════════
+   BONUS VIE (étoile)
+══════════════════════════════ */
+.bonus-heart {
+  position: absolute;
+  font-size: 2rem;
+  cursor: default;
+  pointer-events: none;
+  animation: pulse 1s ease-in-out infinite alternate;
+  z-index: 50;
+}
+
+@keyframes pulse {
+  from { transform: scale(1);    filter: drop-shadow(0 0 4px #ff6666); }
+  to   { transform: scale(1.25); filter: drop-shadow(0 0 12px #ff3333); }
+}
+
+/* ══════════════════════════════
+   ANIMATIONS DIVERSES
+══════════════════════════════ */
+@keyframes flicker {
+  0%,100% { opacity: 1; }
+  50%     { opacity: 0.6; }
+}

@@ -1,23 +1,79 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="fr" dir="ltr">
+
 <head>
   <meta charset="utf-8">
-  <title>Star War Game</title>
+  <title>Star Wars Game — R2D2 vs l'Empire</title>
   <link href="style.css" rel="stylesheet" type="text/css">
   <script defer src="code.js"></script>
 </head>
+
 <body>
+
+  <!-- Images cachées utilisées comme modèles pour les sprites -->
   <div class="resources">
     <img id="R2D2" src="data/R2D2.png">
     <img id="x_wing" src="data/x_wing.png">
     <img id="anakin_starfighter" src="data/anakin_starfighter.png">
     <img id="naboo_starfighter" src="data/naboo_starfighter.png">
     <img id="obi_wan_starfighter" src="data/obi_wan_starfighter.png">
-    <img id="" src="data/.png">
+    <img id="darthvader" src="data/darthvader.png">
+  </div>
 
-   .png
+  <!-- ══ ÉCRAN DE DÉMARRAGE ══ -->
+  <div id="start-screen">
+    <div id="start-content">
+      <!-- Ajout d'une image de titre ou décorative -->
+      <img src="data/logo.png" alt="Star Wars Title" class="menu-logo">
+
+      <div id="start-crawl">STAR WARS</div>
+      <h1 id="start-title">R2D2 vs l'Empire</h1>
+      <div id="start-rules">
+        <p>Attrape les vaisseaux alliés pour gagner des points</p>
+        <p>Évite Darth Vader — il te coûte une vie !</p>
+        <p>❤️ Tu as 3 vies. Le jeu dure 3 minutes.</p>
+        <p>Utilise les flèches pour déplacer R2D2</p>
+      </div>
+      <button id="start-btn">JOUER</button>
+      <div id="start-controls">
+        <span>← ↑ → ↓ ou Z Q S D</span>
+      </div>
+    </div>
   </div>
-  <div id="playground">
+
+  <!-- ══ COMPTE À REBOURS ══ -->
+  <div id="countdown" class="hidden">3</div>
+
+  <!-- ══ HUD ══ -->
+  <div id="hud" class="hidden">
+    <div id="hud-left">
+      <div id="hud-level">Niveau <span id="level-value">1</span></div>
+      <div id="hud-score">Score : <span id="score-value">0</span></div>
+    </div>
+    <div id="hud-center">
+      <span id="timer-value">03:00</span>
+    </div>
+    <div id="hud-right">
+      <div id="hud-lives">
+        <span class="heart" id="heart-1">❤️</span>
+        <span class="heart" id="heart-2">❤️</span>
+        <span class="heart" id="heart-3">❤️</span>
+      </div>
+      <button id="mute-btn" title="Couper / activer le son">🔊</button>
+      <!-- Ajout du bouton pour quitter -->
+      <button id="quit-btn">QUITTER</button>
+    </div>
   </div>
+
+  <!-- ══ MESSAGE NIVEAU ══ -->
+  <div id="level-banner" class="hidden"></div>
+
+  <!-- ══ MESSAGE FIN DE PARTIE ══ -->
+  <div id="message" class="hidden"></div>
+
+  <!-- ══ AIRE DE JEU ══ -->
+  <div id="playground"></div>
+
 </body>
+
 </html>
