@@ -31,19 +31,43 @@ class Position {
 // class rectangle 
 
 class Rectangle {
+    #pos;   // { x, y }
+    #size;  // { width, height }
+
     constructor(position, size) {
-        this.x = position.x;
-        this.y = position.y;
-        this.w = size.width;
-        this.h = size.height;
+        this.#pos  = position;  // position : objet { x, y }
+        this.#size = size;      // size : objet { width, height }
     }
 
-    // Savoir si un rectangle est en collision avec un autre
-    areIntersecting(other) {
-        return this.x < other.x + other.w &&
-            this.x + this.w > other.x &&
-            this.y < other.y + other.h &&
-            this.y + this.h > other.y;
+    get x()      { return this.#pos.x; }
+    get y()      { return this.#pos.y; }
+    get width()  { return this.#size.width; }
+    get height() { return this.#size.height; }
+
+    // Retourne vrai s'il y a intersection avec le rectangle r
+    areIntersecting(r) {
+        // Pas d'intersection sur l'axe X si :
+        //   R2 est à droite de R1 : r.x > this.x + this.width
+        //   R2 est à gauche de R1 : r.x + r.width < this.x
+        if (r.x > this.x + this.width)  return false;
+        if (r.x + r.width < this.x)     return false;
+
+        // Pas d'intersection sur l'axe Y si :
+        //   R2 est en dessous de R1 : r.y > this.y + this.height
+        //   R2 est au dessus de R1  : r.y + r.height < this.y
+        if (r.y > this.y + this.height) return false;
+        if (r.y + r.height < this.y)    return false;
+
+        // Aucune condition de non-intersection → ils se touchent
+        return true;
+    }
+
+    // Retourne vrai si CE rectangle est entièrement contenu dans r
+    isInside(r) {
+        return this.x >= r.x &&
+               this.y >= r.y &&
+               this.x + this.width  <= r.x + r.width &&
+               this.y + this.height <= r.y + r.height;
     }
 }
 
