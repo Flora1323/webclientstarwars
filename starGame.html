@@ -7,17 +7,27 @@
   <script defer src="code.js"></script>
 </head>
 <body>
-  <div class="resources">
-    <img id="R2D2" src="data/R2D2.png">
-    <img id="x_wing" src="data/x_wing.png">
-    <img id="anakin_starfighter" src="data/anakin_starfighter.png">
-    <img id="naboo_starfighter" src="data/naboo_starfighter.png">
-    <img id="obi_wan_starfighter" src="data/obi_wan_starfighter.png">
-    <img id="" src="data/.png">
 
-   .png
+  <!-- Images cachées utilisées comme modèles pour les sprites -->
+  <div class="resources">
+    <img id="R2D2"               src="data/R2D2.png">
+    <img id="x_wing"             src="data/x_wing.png">
+    <img id="anakin_starfighter" src="data/anakin_starfighter.png">
+    <img id="naboo_starfighter"  src="data/naboo_starfighter.png">
+    <img id="obi_wan_starfighter"src="data/obi_wan_starfighter.png">
+    <!-- AJOUT : Darth Vader manquait -->
+    <img id="darthvader"         src="data/darthvader.png">
   </div>
-  <div id="playground">
+
+  <!-- AJOUT : HUD affiché en overlay (score + timer + message fin de partie) -->
+  <div id="hud">
+    <div id="hud-score">Score : <span id="score-value">0</span></div>
+    <div id="hud-timer"><span id="timer-value">03:00</span></div>
   </div>
+  <div id="message"></div>
+
+  <!-- Aire de jeu principale -->
+  <div id="playground"></div>
+
 </body>
 </html>
