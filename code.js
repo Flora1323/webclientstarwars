@@ -129,6 +129,12 @@ class Speed {
     delta(duration) {
         return { x: this.#x * duration / 1000, y: this.#y * duration / 1000 };
     }
+
+    // Getter et setter pour modifier la vitesse max
+    get maxSpeed() { return this.#max; }
+    set maxSpeed(m) {
+        if (m > 0) this.#max = m;
+    }
 }
 
 ///////////////////////////////////////////////////////////////
@@ -164,6 +170,8 @@ class Sprite {
     #pos;           // Position actuelle du sprite
     #speed;         // La vitesse de déplacement actuelle en pixels par seconde
     #size;          // Taille de l'objet { height, width }
+    #baseSpeedMax;  // Vitesse max initiale (sans multiplicateur)
+    #speedMultiplier = 1.0;  // Multiplicateur de vitesse selon le niveau
 
     constructor(id) {
         this.id = id;
@@ -189,6 +197,8 @@ class Sprite {
             width: rect.width || 60,
             height: rect.height || 60
         };
+        // Sauvegarde la vitesse max initiale pour les multiplicateurs
+        this.#baseSpeedMax = 502;
     };
 
     // Place le sprite à une position p donnée
@@ -232,6 +242,16 @@ class Sprite {
     // AJOUT : définit directement la vitesse (sans incrément)
     setSpeed(x, y) {
         this.#speed.set(x, y);
+    }
+
+    // Permet d'ajuster la vitesse max selon le niveau de difficulté
+    set speedMultiplier(m) {
+        this.#speedMultiplier = m;
+        this.#speed.maxSpeed = this.#baseSpeedMax * m;
+    }
+
+    get speedMultiplier() {
+        return this.#speedMultiplier;
     }
 
     // Change sa position pour la nouvelle frame en fonction de sa vitesse
@@ -650,6 +670,7 @@ let game = {
     timeAccum: 0,     // ms accumulées pour le décompte
     currentLevel: 0,     // index dans LEVELS
     r2d2: null,
+    r2d2Speed: 280,  // vitesse de R2D2 (augmente avec les niveaux)
     sprites: [],    // vaisseaux alliés (tous niveaux confondus)
     enemies: [],    // Darth Vaders
     bonusLife: null,  // bonus cœur
@@ -694,6 +715,10 @@ game.checkLevelUp = function () {
 game.applyLevel = function (levelIdx) {
     const cfg = LEVELS[levelIdx];
     console.log('Passage au ' + cfg.label);
+
+    // Augmente la vitesse de R2D2
+    this.r2d2.speedMultiplier = cfg.speedMult;
+    this.r2d2Speed = 280 * cfg.speedMult;
 
     // Applique le multiplicateur de vitesse à tous les vaisseaux existants
     for (let s of this.sprites) {
@@ -792,10 +817,10 @@ game.update = function (tFrame) {
     // (vitesse directe) plutôt que changeSpeed (incrément), sinon la vitesse
     // s'accumule indéfiniment à chaque frame
     let vx = 0, vy = 0;
-    if (this.keys['ArrowLeft'] || this.keys['q']) vx = -R2D2_SPEED;
-    if (this.keys['ArrowRight'] || this.keys['d']) vx = R2D2_SPEED;
-    if (this.keys['ArrowUp'] || this.keys['z']) vy = -R2D2_SPEED;
-    if (this.keys['ArrowDown'] || this.keys['s']) vy = R2D2_SPEED;
+    if (this.keys['ArrowLeft'] || this.keys['q']) vx = -this.r2d2Speed;
+    if (this.keys['ArrowRight'] || this.keys['d']) vx = this.r2d2Speed;
+    if (this.keys['ArrowUp'] || this.keys['z']) vy = -this.r2d2Speed;
+    if (this.keys['ArrowDown'] || this.keys['s']) vy = this.r2d2Speed;
     // Normalisation diagonale : évite d'aller plus vite en diagonale
     if (vx !== 0 && vy !== 0) { vx *= 0.707; vy *= 0.707; }
     this.r2d2.setSpeed(vx, vy);
@@ -1000,6 +1025,7 @@ game.init = function () {
     this.timeAccum = 0;
     this.tFrameLast = 0;
     this.currentLevel = 0;
+    this.r2d2Speed = 280;
     this.keys = {};
 
     hud.setScore(0);
