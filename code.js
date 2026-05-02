@@ -479,6 +479,7 @@ const hud = {
     timerEl: document.getElementById("timer-value"),
     levelEl: document.getElementById("level-value"),
     msgEl: document.getElementById("message"),
+    gameOverScreenEl: document.getElementById("game-over-screen"),
     hudEl: document.getElementById("hud"),
     hearts: [
         document.getElementById("heart-1"),
@@ -505,7 +506,8 @@ const hud = {
     },
     showMessage(txt) {
         this.msgEl.textContent = txt;
-        this.msgEl.classList.remove('hidden');
+        this.gameOverScreenEl.classList.remove('hidden');
+        this.hudEl.classList.add('hidden');
     },
     show() { this.hudEl.classList.remove('hidden'); },
 };
@@ -894,8 +896,9 @@ game.update = function (tFrame) {
 
         audio.stopMusic();
 
-        //  Cacher le HUD et montrer le menu
+        //  Cacher le HUD et l'écran de fin de partie, montrer le menu
         document.getElementById('hud').classList.add('hidden');
+        document.getElementById('game-over-screen').classList.add('hidden');
         document.getElementById('start-screen').classList.remove('hidden');
 
         // Vider l'aire de jeu (sinon les vaisseaux restent affichés)
@@ -951,10 +954,17 @@ game.end = function (reason) {
     if (reason === "victory") {
         finalMessage = `VICTOIRE ! Vous avez atteint ${this.score} points ! L'Empire est en déroute !`;
     } else {
-        finalMessage = `Partie terminée ! Score final : ${this.score} pts — Appuyez sur F5 pour rejouer.`;
+        finalMessage = `Partie terminée ! Score final : ${this.score} pts`;
     }
 
     hud.showMessage(finalMessage);
+}
+
+// Redémarrage du jeu
+game.restart = function () {
+    audio.stopMusic();
+    document.getElementById('game-over-screen').classList.add('hidden');
+    game.init();
 }
 
 // ─────────────────────────────────────────────
@@ -989,6 +999,22 @@ game.startCountdown = function (callback) {
 // ─────────────────────────────────────────────
 
 game.init = function () {
+    // Nettoyer les sprites préexistants: supprime tous les éléments DOM des sprites du playground
+    const pg = playground.DOM;
+    // Garder seulement les éléments ressources (images modèles)
+    const resources = pg.querySelector('.resources');
+    while (pg.firstChild) {
+        pg.removeChild(pg.firstChild);
+    }
+    if (resources) {
+        pg.appendChild(resources);
+    }
+
+    // Vider les tableaux de sprites
+    this.sprites = [];
+    this.enemies = [];
+    this.r2d2 = null;
+
     // CORRECTION : R2D2 créé ici, après le chargement des images (event load)
     this.r2d2 = new Sprite("R2D2");
     // Place R2D2 au centre-bas de l'écran
@@ -1063,6 +1089,16 @@ document.getElementById('mute-btn').addEventListener('click', () => {
 
 // Bouton quitter (retour à l'écran de démarrage)
 document.getElementById('quit-btn').addEventListener('click', () => {
+    game.returnToHome();
+});
+
+// Bouton recommencer (après fin de partie)
+document.getElementById('restart-btn').addEventListener('click', () => {
+    game.restart();
+});
+
+// Bouton retour au menu (après fin de partie)
+document.getElementById('home-btn').addEventListener('click', () => {
     game.returnToHome();
 });
 
