@@ -962,7 +962,6 @@ game.end = function (reason) {
 
 // Redémarrage du jeu
 game.restart = function () {
-    audio.stopMusic();
     document.getElementById('game-over-screen').classList.add('hidden');
     game.init();
 }
