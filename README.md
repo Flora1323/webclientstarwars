@@ -2,7 +2,7 @@
 
 Projet réalisé dans le cadre du **TP7 — Jeux vidéo** du module Programmation Web Client 1, Université Grenoble Alpes 2026.
 
-Groupe : PECHE Chirine, ... Alain
+Groupe : PECHE Chirine, KARAPETIAN Alain
 
 ---
 
