@@ -1,41 +1,34 @@
-// Notion de Position par rapport à un point fixe
-// C'est une valeur, donc non modifiable
 class Position {
-    #x; // Coordonne x de la position
-    #y; // Coordonne y de la position
+    #x;
+    #y;
 
-    // Construit une position à partir de 2 nombres
     constructor(x = 0, y = 0) {
         this.#x = x;
         this.#y = y;
     }
 
-    // Acces en lecture aux attributs
     get x() { return this.#x; }
     get y() { return this.#y; }
 
-    // Création d'une nouvelle position par translation
     shift(x, y) {
         return new Position(this.#x + x, this.#y + y);
     }
 
     // Création d'une nouvelle position à partir d'une vitesse et un temps
     move(speed, duration) {
-        // Calcule le déplacement de la vitesse en fonction du temps
         let delta = speed.delta(duration);
-        // calcule la nouvelle position
         return this.shift(delta.x, delta.y);
     }
 };
 
-// class rectangle
+// class rectangle des hit-boxes
 class Rectangle {
-    #pos;   // { x, y }
-    #size;  // { width, height }
+    #pos;
+    #size;
 
     constructor(position, size) {
-        this.#pos = position;  // position : objet { x, y }
-        this.#size = size;     // size : objet { width, height }
+        this.#pos = position;
+        this.#size = size;
     }
 
     get x() { return this.#pos.x; }
@@ -43,21 +36,16 @@ class Rectangle {
     get width() { return this.#size.width; }
     get height() { return this.#size.height; }
 
+    // Colision des hit-boxes:
+
     // Retourne vrai s'il y a intersection avec le rectangle r
     areIntersecting(r) {
-        // Pas d'intersection sur l'axe X si :
-        //   R2 est à droite de R1 : r.x > this.x + this.width
-        //   R2 est à gauche de R1 : r.x + r.width < this.x
         if (r.x > this.x + this.width) return false;
         if (r.x + r.width < this.x) return false;
 
-        // Pas d'intersection sur l'axe Y si :
-        //   R2 est en dessous de R1 : r.y > this.y + this.height
-        //   R2 est au dessus de R1  : r.y + r.height < this.y
         if (r.y > this.y + this.height) return false;
         if (r.y + r.height < this.y) return false;
 
-        // Aucune condition de non-intersection → ils se touchent
         return true;
     }
 
@@ -72,38 +60,33 @@ class Rectangle {
 
 // Notion de vitesse : nombre de pixels à bouger par secondes
 class Speed {
-    #x;     // distance à parcourir sur l'axe des X en 1 seconde
-    #y;     // distance à parcourir sur l'axe des Y en 1 seconde
-    #max;   // Vitesse maximum, doit être positive
+    #x;
+    #y;
+    #max;
 
-    // Indique la vitesse maximum
     constructor(max) {
         if (max <= 0) {
             throw new Error("Vitesse maximum doit être positif");
         }
-        // CORRECTION : initialisé à 0 pour que R2D2 soit immobile au départ
         this.#x = 0;
         this.#y = 0;
         this.#max = max;
     }
 
-    // Stoppe sur les deux axes
     stop() {
         this.#x = 0;
         this.#y = 0;
     }
 
-    // Vrai si la vitesse est nulle. 
     isStopped() {
         return this.#x == 0 && this.#y == 0;
     }
 
-    // Accelère si dx ou dy est positif ou freine si negatif
+    // Gestion de l'acceleration jusqu'à la vitesse max
     change(dx, dy) {
         this.#x += dx;
         this.#y += dy;
 
-        // Limite les vitesses
         if (this.#x > this.#max) {
             this.#x = this.#max;
         } else if (this.#x < -this.#max) {
@@ -116,21 +99,20 @@ class Speed {
         }
     }
 
-    // AJOUT : définit directement la vitesse (sans incrément)
-    // Utilisé pour le mouvement de R2D2 avec les touches maintenues enfoncées
+    // Vitesse sans acceleration
+    //  NB : la version initiale du code accélerais prgressivement r2d2 ce qui le redais peut maniable
     set(x, y) {
         this.#x = Math.max(-this.#max, Math.min(this.#max, x));
         this.#y = Math.max(-this.#max, Math.min(this.#max, y));
     }
 
-    // Calcule un déplacement en x et y à cette vitesse pour un temps donné
+    // Calcule un déplacement en x et y pour un temps donné
     // duration: Number, temps considéré en millisecondes
     // @return: un déplacement {x,y}
     delta(duration) {
         return { x: this.#x * duration / 1000, y: this.#y * duration / 1000 };
     }
 
-    // Getter et setter pour modifier la vitesse max
     get maxSpeed() { return this.#max; }
     set maxSpeed(m) {
         if (m > 0) this.#max = m;
@@ -141,18 +123,15 @@ class Speed {
 // Utilitaires pour les limites de l'aire de jeu
 ///////////////////////////////////////////////////////////////
 
-// Fonction qui indique si on est en dehors des limites
+// Fonction qui indique si on est en dehors des limites de la page
 const outOfLimit = (min, val, max) => val <= min ? true : (val >= max ? true : false);
 
 // Fonction qui retourne une valeur entre deux bornes
 const limit = (min, val, max) => val < min ? min : (val > max ? max : val);
 
-///////////////////////////////////////////////////////////////
-// Objet qui représente l'aire du jeu
-///////////////////////////////////////////////////////////////
 
+// Objet qui représente l'aire du jeu
 const playground = {
-    // Objet DOM de l'aire de jeu
     DOM: window.document.getElementById("playground"),
 }
 
@@ -161,49 +140,41 @@ playground.size = playground.DOM.getBoundingClientRect();
 
 
 ///////////////////////////////////////////////////////////////
-// Notion de sprite
+// Sprites
 ///////////////////////////////////////////////////////////////
 
 class Sprite {
-    id;             // l'Id du sprite, pour info
-    #DOM;           // Objet DOM qui représente le sprite
-    #pos;           // Position actuelle du sprite
-    #speed;         // La vitesse de déplacement actuelle en pixels par seconde
-    #size;          // Taille de l'objet { height, width }
-    #baseSpeedMax;  // Vitesse max initiale (sans multiplicateur)
+    id;
+    #DOM;
+    #pos;                    // Position actuelle du sprite
+    #speed;                  // La vitesse actuelle en pixels par seconde
+    #size;
+    #baseSpeedMax;
     #speedMultiplier = 1.0;  // Multiplicateur de vitesse selon le niveau
 
     constructor(id) {
         this.id = id;
-        // Recherche l'élément DOM
         const DOM = document.getElementById(id);
-        // Vérifie qu'il existe
         if (DOM == null) {
             throw new Error('HTML object ' + id + ' not found');
         }
-        // Crée un objet DOM pour l'afficher
         this.#DOM = DOM.cloneNode();
-        // Supprime l'attribut id
         this.#DOM.setAttribute("id", "");
-        // Place l'objet dans la DOM
         playground.DOM.appendChild(this.#DOM);
-        // Initialise sa position relative
         this.#pos = new Position(0, 0);
-        // Vitesse en pixels par secondes : objet initialement immobile
         this.#speed = new Speed(502);
-        // Calcule sa taille
+
+        //hitbox
         const rect = this.#DOM.getBoundingClientRect();
         this.#size = {
             width: rect.width || 60,
             height: rect.height || 60
         };
-        // Sauvegarde la vitesse max initiale pour les multiplicateurs
         this.#baseSpeedMax = 502;
     };
 
     // Place le sprite à une position p donnée
     set pos(p) {
-        // Empeche de sortir de l'aire de jeux
         let minX = -this.#size.width;
         let minY = -this.#size.height;
         let maxX = playground.size.width;
@@ -239,7 +210,6 @@ class Sprite {
         this.#speed.change(dx, dy);
     }
 
-    // AJOUT : définit directement la vitesse (sans incrément)
     setSpeed(x, y) {
         this.#speed.set(x, y);
     }
@@ -256,13 +226,10 @@ class Sprite {
 
     // Change sa position pour la nouvelle frame en fonction de sa vitesse
     update(duration) {
-        // Deplace la position en fonction de la vitesse et du temps
         this.pos = this.#pos.move(this.#speed, duration);
     };
 
     // Retourne le Rectangle de la hitbox du sprite.
-    // Surcharge simulée : si pos est fourni → hitbox à cette position future,
-    //                     si pos est undefined → hitbox à la position actuelle.
     hitbox(pos) {
         const p = (pos !== undefined) ? pos : this.#pos;
         return new Rectangle(
@@ -279,7 +246,6 @@ class Sprite {
     // Applique le tremblement CSS sur le DOM du sprite
     shake() {
         this.#DOM.classList.remove('shake');
-        // Force le reflow pour relancer l'animation
         void this.#DOM.offsetWidth;
         this.#DOM.classList.add('shake');
         setTimeout(() => this.#DOM.classList.remove('shake'), 500);
@@ -295,51 +261,42 @@ class Plane extends Sprite {
     waitingTime;
     // Points gagnés quand R2D2 attrape ce vaisseau
     points;
-    #speedMultiplier; // multiplicateur de vitesse selon le niveau
+    #speedMultiplier;
 
 
     constructor(id, pts = 10) {
         super(id);
         this.waitingTime = 0;
         this.points = pts;
-        // Immobile au départ, start() l'activera
         this.#speedMultiplier = 1;
         this.stop();
     }
 
-    // Permet d'ajuster la vitesse selon le niveau de difficulté
     set speedMultiplier(m) { this.#speedMultiplier = m; }
 
-    // Démarre l'avion du haut de l'écran
+    // Démarre le mouvement des vaisseaux à attraper depuis le haut
     start() {
-        // Choisit une position x random
         let x = playground.size.width * Math.random();
         this.pos = new Position(x, -this.size.height);
-        // CORRECTION : setSpeed (valeur directe) plutôt que changeSpeed (incrément)
-        // pour éviter que la vitesse s'accumule à chaque redémarrage
         const vy = (80 + Math.random() * 140) * this.#speedMultiplier;
         const vx = (Math.random() - 0.5) * 60 * this.#speedMultiplier;
         this.setSpeed(vx, vy);
         console.log(this.id, 'start (x' + this.#speedMultiplier + ')');
     }
 
-    // Vrai si le sprite a atteint le bas de l'aire de jeux
     isAtBottom() {
         return this.pos.y >= playground.size.height;
     }
 
+    // Met à jour l'état du sprite et permet la réapparition
     update(duration) {
         super.update(duration);
-        // Regarde si le sprite a disparu au bas de l'écran
         if (this.isAtBottom() && !this.isStopped()) {
-            // Arrête le sprite
             this.stop();
-            // Place un temps d'attente (en ms) avant de redémarrer
             this.waitingTime = 1000 + Math.random() * 3000;
         }
-        // Si le sprite est arrêté, attend puis redémarre
         if (this.isStopped()) {
-            this.waitingTime -= duration; // décompte en ms réelles
+            this.waitingTime -= duration;
             if (this.waitingTime <= 0) {
                 this.waitingTime = 0;
                 this.start();
@@ -353,7 +310,6 @@ class Plane extends Sprite {
 ///////////////////////////////////////////////////////////////
 
 class DarthVader extends Sprite {
-    // Temps avant apparition (en ms)
     waitingTime;
     #speedMultiplier;
 
@@ -409,15 +365,15 @@ class DarthVader extends Sprite {
     }
 }
 
-// =============================================
+////////////////////////////////////////////////
 // BONUS VIE — cœur qui apparaît aléatoirement
-// =============================================
+////////////////////////////////////////////////
 class BonusLife {
     #el;       // élément DOM (emoji ❤️)
-    #pos;      // position actuelle
-    #size;     // taille approximative pour la hitbox
-    #visible;  // est-il affiché ?
-    #lifetime; // temps restant avant disparition (ms)
+    #pos;
+    #size;
+    #visible;
+    #lifetime;
 
     constructor() {
         this.#el = document.createElement('div');
@@ -442,7 +398,7 @@ class BonusLife {
         this.#el.style.top = y + 'px';
         this.#el.style.display = '';
         this.#visible = true;
-        this.#lifetime = 8000; // visible 8 secondes
+        this.#lifetime = 8000;
     }
 
     hide() {
@@ -512,10 +468,10 @@ const hud = {
     show() { this.hudEl.classList.remove('hidden'); },
 };
 
-// =============================================
+////////////////////////////////////////////////
 // AUDIO — musique d'ambiance + son de capture
 // Web Audio API, aucune librairie externe
-// =============================================
+////////////////////////////////////////////////
 const audio = {
     ctx: null,
     muted: false,
@@ -534,9 +490,7 @@ const audio = {
     // fonction stop musique
     stopMusic() {
         if (this.ctx) {
-            // On ferme le moteur audio pour libérer les ressources
             this.ctx.close();
-            // On remet à null pour que init() recrée tout
             this.ctx = null;
             this.gainNode = null;
         }
@@ -625,16 +579,16 @@ const audio = {
     }
 };
 
-// =============================================
+////////////////////////////////////////////////
 // CONFIGURATION DES NIVEAUX
-// =============================================
+////////////////////////////////////////////////
 const LEVELS = [
     // Niveau 1 : de 0 à 99 pts
     {
         scoreThreshold: 0,
         speedMult: 1.0,
         vaderCount: 1,
-        extraPlanes: [],      // pas de vaisseaux supplémentaires
+        extraPlanes: [],
         label: 'NIVEAU 1 - Les prémisses de la rébellion !',
     },
     // Niveau 2 : à partir de 100 pts
@@ -642,7 +596,7 @@ const LEVELS = [
         scoreThreshold: 100,
         speedMult: 1.4,
         vaderCount: 2,
-        extraPlanes: ['x_wing'],  // un x_wing supplémentaire
+        extraPlanes: ['x_wing'],
         label: 'NIVEAU 2 — L\'Empire contre-attaque !',
     },
     // Niveau 3 : à partir de 250 pts
@@ -650,41 +604,41 @@ const LEVELS = [
         scoreThreshold: 250,
         speedMult: 1.8,
         vaderCount: 3,
-        extraPlanes: ['x_wing', 'naboo_starfighter'], // deux vaisseaux supplémentaires
+        extraPlanes: ['x_wing', 'naboo_starfighter'],
         label: 'NIVEAU 3 — Le retour du Jedi !',
     },
 ];
 
 
-///////////////////////////////////////////////////////////////
+////////////////////////////////////////////////
 // Objet jeu principal
-///////////////////////////////////////////////////////////////
+////////////////////////////////////////////////
 
-// =============================================
+////////////////////////
 // GAME
-// =============================================
+////////////////////////
 let game = {
     run: false,
     tFrameLast: 0,
     score: 0,
     lives: 3,
-    timeLeft: 180,   // secondes
-    timeAccum: 0,     // ms accumulées pour le décompte
-    currentLevel: 0,     // index dans LEVELS
+    timeLeft: 180,
+    timeAccum: 0,
+    currentLevel: 0,
     r2d2: null,
-    r2d2Speed: 280,  // vitesse de R2D2 (augmente avec les niveaux)
+    r2d2Speed: 280,
     sprites: [],    // vaisseaux alliés (tous niveaux confondus)
     enemies: [],    // Darth Vaders
-    bonusLife: null,  // bonus cœur
-    bonusTimer: 0,     // compteur avant prochaine apparition du bonus (ms)
+    bonusLife: null,
+    bonusTimer: 0,
     keys: {},
 };
 
 const R2D2_SPEED = 280; // px/s
 
-// ─────────────────────────────────────────────
+////////////////////////////////////////////////
 // EFFETS VISUELS DE COLLISION
-// ─────────────────────────────────────────────
+////////////////////////////////////////////////
 
 // Affiche un texte flottant (+pts ou -❤️) à la position du sprite
 function showFX(text, x, y, cssClass) {
@@ -697,14 +651,14 @@ function showFX(text, x, y, cssClass) {
     setTimeout(() => el.remove(), 900);
 }
 
-// ─────────────────────────────────────────────
+////////////////////////////////////////////////
 // GESTION DES NIVEAUX
-// ─────────────────────────────────────────────
+////////////////////////////////////////////////
 
 // Vérifie si le score atteint un nouveau niveau et l'active
 game.checkLevelUp = function () {
     const nextLevelIdx = this.currentLevel + 1;
-    if (nextLevelIdx >= LEVELS.length) return; // déjà au niveau max
+    if (nextLevelIdx >= LEVELS.length) return;
 
     const next = LEVELS[nextLevelIdx];
     if (this.score >= next.scoreThreshold) {
@@ -771,9 +725,9 @@ game.showLevelBanner = function (text) {
     setTimeout(() => el.classList.add('hidden'), 2500);
 };
 
-// ─────────────────────────────────────────────
+////////////////////////////////////////////////
 // BOUCLE PRINCIPALE
-// ─────────────────────────────────────────────
+////////////////////////////////////////////////
 
 // tFrame : temps absolu en ms depuis le premier appel à requestAnimationFrame
 function main(tFrame) {
@@ -786,18 +740,16 @@ function main(tFrame) {
     game.update(tFrame);
 }
 
-// ─────────────────────────────────────────────
+////////////////////////////////////////////////
 // MISE À JOUR DU JEU (appelée à chaque frame)
-// ─────────────────────────────────────────────
+////////////////////////////////////////////////
 
 // Mise à jour du jeu à la date indiquée
 // tFrame : temps absolu en ms depuis le premier appel à requestAnimationFrame
 game.update = function (tFrame) {
     // Calcule la durée qui s'est passée après la frame précédente
     let duration = tFrame - this.tFrameLast;
-    // Évite un grand saut à la toute première frame
     if (this.tFrameLast === 0) duration = 0;
-    // Met à jour le temps précédent
     this.tFrameLast = tFrame;
 
     // --- Décompte du timer ---
@@ -815,7 +767,7 @@ game.update = function (tFrame) {
     }
 
     // --- Déplacement de R2D2 selon les touches maintenues ---
-    // CORRECTION : on lit l'état des touches dans game.keys et on utilise setSpeed
+    // lit l'état des touches dans game.keys et utilise setSpeed
     // (vitesse directe) plutôt que changeSpeed (incrément), sinon la vitesse
     // s'accumule indéfiniment à chaque frame
     let vx = 0, vy = 0;
@@ -831,23 +783,20 @@ game.update = function (tFrame) {
     // --- Détection collision R2D2 / vaisseau allié ---
     for (let sprite of this.sprites) {
         sprite.update(duration);
-        // collidesWith() utilise hitbox() → areIntersecting() avec la formule du sujet
         if (!sprite.isStopped() && this.r2d2.collidesWith(sprite)) {
             this.score += sprite.points;
             hud.setScore(this.score);
 
             // --- AJOUT DE LA LIMITE ICI ---
             if (this.score >= 1000) {
-                this.end("victory"); // On envoie "victory" comme raison
-                return;              // On stoppe tout de suite l'exécution de l'update
+                this.end("victory");
+                return;
             }
 
             sprite.stop();
             sprite.waitingTime = 1000 + Math.random() * 2000;
-            // Effet visuel et sonore
             showFX('+' + sprite.points, sprite.pos.x, sprite.pos.y, 'collect-fx');
             audio.playCapture();
-            // Vérifie si on passe au niveau supérieur
             this.checkLevelUp();
         }
     }
@@ -889,10 +838,10 @@ game.update = function (tFrame) {
         this.bonusLife.hide();
     }
 
-    // Fonction qui permet de retourner au menu principal (appelée dans end() et aussi accessible via F5)
+    // Fonction qui permet de retourner au menu principal (appelée dans end())
 
     game.returnToHome = function () {
-        this.run = false; // Arrête la boucle de jeu
+        this.run = false;
 
         audio.stopMusic();
 
@@ -901,9 +850,8 @@ game.update = function (tFrame) {
         document.getElementById('game-over-screen').classList.add('hidden');
         document.getElementById('start-screen').classList.remove('hidden');
 
-        // Vider l'aire de jeu (sinon les vaisseaux restent affichés)
-        // On enlève tous les enfants de playground sauf les éléments originaux (modèles)
-        // Une astuce simple est de vider le contenu HTML injecté
+        // Vider l'aire de jeu
+        // Enlève tous les sprites de playground sauf les éléments originaux (modèles)
         const pg = playground.DOM;
         while (pg.firstChild) {
             pg.removeChild(pg.firstChild);
@@ -917,17 +865,16 @@ game.update = function (tFrame) {
     };
 };
 
-// ─────────────────────────────────────────────
+////////////////////////////////////////////////
 // CLAVIER
-// ─────────────────────────────────────────────
+////////////////////////////////////////////////
 
 // Réaction du jeu à l'enfoncement d'une touche
 game.onkeydown = function (key) {
     this.keys[key] = true;
 }
 
-// Réaction du jeu au relâchement d'une touche
-// CORRECTION : sans onkeyup, R2D2 continuerait à glisser après avoir lâché la touche
+// Réaction du jeu au relâchement d'une touche: sans onkeyup, R2D2 continuerait à glisser après avoir lâché la touche
 game.onkeyup = function (key) {
     this.keys[key] = false;
 }
@@ -935,19 +882,19 @@ game.onkeyup = function (key) {
 // Installe la lecture des touches
 window.onkeydown = function (e) {
     game.onkeydown(e.key);
-    e.preventDefault(); // évite le scroll de la page avec les flèches
+    e.preventDefault();
 }
 window.onkeyup = function (e) {
     game.onkeyup(e.key);
 }
 
-// ─────────────────────────────────────────────
+////////////////////////////////////////////////
 // FIN DE PARTIE
-// ─────────────────────────────────────────────
+////////////////////////////////////////////////
 
 // Fin de partie
 game.end = function (reason) {
-    this.run = false; // Arrête la boucle principale
+    this.run = false;
 
     let finalMessage = "";
 
@@ -966,9 +913,9 @@ game.restart = function () {
     game.init();
 }
 
-// ─────────────────────────────────────────────
+////////////////////////////////////////////////
 // COMPTE À REBOURS (3... 2... 1... GO !)
-// ─────────────────────────────────────────────
+////////////////////////////////////////////////
 game.startCountdown = function (callback) {
     const el = document.getElementById('countdown');
     const steps = ['3', '2', '1', 'GO !'];
@@ -993,14 +940,13 @@ game.startCountdown = function (callback) {
     next();
 };
 
-// ─────────────────────────────────────────────
+////////////////////////////////////////////////
 // INITIALISATION
-// ─────────────────────────────────────────────
+////////////////////////////////////////////////
 
 game.init = function () {
     // Nettoyer les sprites préexistants: supprime tous les éléments DOM des sprites du playground
     const pg = playground.DOM;
-    // Garder seulement les éléments ressources (images modèles)
     const resources = pg.querySelector('.resources');
     while (pg.firstChild) {
         pg.removeChild(pg.firstChild);
@@ -1014,9 +960,7 @@ game.init = function () {
     this.enemies = [];
     this.r2d2 = null;
 
-    // CORRECTION : R2D2 créé ici, après le chargement des images (event load)
     this.r2d2 = new Sprite("R2D2");
-    // Place R2D2 au centre-bas de l'écran
     this.r2d2.pos = new Position(
         playground.size.width / 2 - this.r2d2.size.width / 2,
         playground.size.height * 0.8
@@ -1066,18 +1010,15 @@ game.init = function () {
     });
 };
 
-// ─────────────────────────────────────────────
+////////////////////////////////////////////////
 // BOUTON JOUER — écran de démarrage
-// ─────────────────────────────────────────────
+////////////////////////////////////////////////
 
 document.getElementById('start-btn').addEventListener('click', () => {
-    // Démarre l'audio (nécessite un geste utilisateur pour le navigateur)
     audio.init();
 
-    // Cache l'écran de démarrage
     document.getElementById('start-screen').classList.add('hidden');
 
-    // Lance le jeu
     game.init();
 });
 
@@ -1101,22 +1042,7 @@ document.getElementById('home-btn').addEventListener('click', () => {
     game.returnToHome();
 });
 
-// L'initialisation des sprites est asynchrone :
-// on attend le chargement complet des images avant tout
+// L'initialisation des sprites est asynchrone
 window.addEventListener("load", () => {
-    // Rien à faire ici : game.init() est appelé au clic sur "JOUER"
     console.log("Images chargées — prêt.");
 });
-
-/*
-game.start = function () {
-    // Lance tous les sprites
-    for (let sprite of this.sprites) {
-        sprite.start();
-    }
-}
-
-game.stop = function () {
-    game.run = false;
-}
-    */
